@@ -1,6 +1,6 @@
 # Cloud Engineer Portfolio
 
-Hands-on projects documenting my path into Cloud Engineering / DevOps — built from scratch, no certs, just labs and real code.
+Hands-on projects documenting my path into Cloud Engineering / DevOps — built from scratch, just labs and real code.
 
 ## Projects
 
