@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "Disk usage:"
+df -h
+echo "Memory usage:"
+vm_stat
+echo "Top 5 processes by CPU:"
+ps aux | sort -rk 3 | head -6
