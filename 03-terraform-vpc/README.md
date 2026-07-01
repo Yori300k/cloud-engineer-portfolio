@@ -14,3 +14,4 @@ Rebuilding the AWS VPC from Project 02, this time using Terraform (Infrastructur
 
 ## Next steps
 - Add subnets, Internet Gateway, and route table to fully match the Project 02 architecture in code
+# Terraform VPC Project
