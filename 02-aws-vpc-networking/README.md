@@ -1,4 +1,50 @@
+# Project 02 - AWS 3-Tier Architecture (Manual Console Build)
 
+## What I built
+A complete, tested AWS network built entirely by hand in the AWS console — no automation tools, just understanding each piece before writing code for it.
+
+### Architecture
+- **VPC:** `cloud-portfolio-vpc` — CIDR `10.0.0.0/16`
+- **Public subnet:** `public-subnet-1` — CIDR `10.0.2.0/24` — AZ `us-east-1a`
+- **Private subnet:** `private-subnet-1` — CIDR `10.0.1.0/24` — AZ `us-east-1b`
+- **Private subnet 2:** `private-subnet-2` — CIDR `10.0.3.0/24` — AZ `us-east-1c`
+- **Internet Gateway:** attached to VPC, enables public internet access
+- **Route table:** routes `0.0.0.0/0` to IGW, associated with public subnet only
+- **EC2 instance:** in public subnet, SSH accessible, tested live
+- **RDS MySQL database:** in private subnets, no public access, only reachable from EC2
+
+## Why I built it manually first
+Before writing Terraform code for infrastructure, I needed to understand what each piece actually does and why it exists. If you write Terraform without understanding VPCs, you're just copying code you don't understand — that falls apart in interviews and on the job.
+
+## Why public vs private subnets
+The web/app tier (EC2) sits in the public subnet — reachable from the internet for legitimate traffic. The database (RDS) sits in the private subnet — no public IP, no internet gateway route, only reachable from inside the VPC. This separation is the most fundamental security boundary in cloud architecture. If the database were public, one misconfigured security group rule away from being exposed to the internet.
+
+## Real problems I ran into
+- **CIDR overlap error:** When creating the second subnet, I got `CIDR Address overlaps with existing Subnet CIDR`. Had to check what was already created, realize my first subnet landed on `10.0.2.0/24` instead of `10.0.1.0/24`, and adjust the second one accordingly. Classic real-world debugging — check what actually exists before assuming
+- **Wrong master username:** Spent 2 hours trying to connect to RDS with username `admin`. The actual username was `adminME`. Fixed by checking the actual field value in the RDS console instead of assuming. Lesson: never assume, always verify
+- **EC2 IP address changing:** After stopping and restarting the EC2 instance, the public IP changed. Had to grab the new IP from the console each time. Real fix: Elastic IP addresses (covered in a future project)
+- **vim vs nano confusion:** Git dropped me into vim for a merge commit message. Didn't know the difference between Insert mode and Normal mode. Learned `:wq` to save and quit after several failed attempts with Ctrl+O
+- **Git merge conflict:** Local and remote branches diverged. Had to `git pull`, resolve the merge, then push. Normal part of real team workflows
+
+## End-to-end connectivity test
+1. SSH'd into `public-test-instance` from local Mac terminal
+2. Ran `ping google.com` — confirmed outbound internet access from public subnet
+3. Installed MySQL client on EC2 instance
+4. Connected to RDS database using its internal endpoint
+5. Reached `MySQL [(none)]>` prompt — proving public subnet can reach private database, internet cannot
+
+## Key concepts this demonstrates
+- VPC and subnet design with non-overlapping CIDR blocks
+- Public vs private subnet separation as a security pattern
+- Multi-AZ deployment for fault tolerance
+- Security group source referencing (security group ID vs IP range)
+- Least-privilege network design
+- Real debugging under pressure
+
+## What I'd add next
+- NAT Gateway so private subnet instances can reach the internet for updates without being publicly accessible
+- Application Load Balancer in front of EC2
+- Rebuild entirely in Terraform (see Project 03)
 
 
 # Project 02 - AWS VPC Networking
