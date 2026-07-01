@@ -33,13 +33,13 @@ The web/app tier (EC2) sits in the public subnet — reachable from the internet
 4. Connected to RDS database using its internal endpoint
 5. Reached `MySQL [(none)]>` prompt — proving public subnet can reach private database, internet cannot
 
-## Key concepts this demonstrates
-- VPC and subnet design with non-overlapping CIDR blocks
-- Public vs private subnet separation as a security pattern
-- Multi-AZ deployment for fault tolerance
-- Security group source referencing (security group ID vs IP range)
-- Least-privilege network design
-- Real debugging under pressure
+## What this actually taught me
+
+Building this by hand before writing any Terraform code was the right call. When I later wrote `vpc_id = aws_vpc.main.id` in Terraform, I knew exactly what that line was doing — linking a subnet to a specific VPC — because I'd already done that same action manually in the console. Without the manual build first, that line would just be something I copy-pasted without understanding.
+
+The private subnet decision wasn't just "best practice" — it was a deliberate architectural choice. Putting RDS in a private subnet means there are two independent layers of protection: the security group (which controls what traffic is allowed) AND the network layer (which controls whether a network path even exists). If I only used a security group and accidentally left port 3306 open to the world, the database would be exposed. With a private subnet, that mistake still can't expose it — there's no route to get there from the internet in the first place. That's defense in depth, not just a checkbox.
+
+The most valuable thing I learned wasn't the architecture — it was the debugging. Wrong username, CIDR conflicts, IP addresses changing, merge conflicts. Real cloud engineering is mostly diagnosing why something isn't working, not building things that work perfectly the first time.
 
 ## What I'd add next
 - NAT Gateway so private subnet instances can reach the internet for updates without being publicly accessible

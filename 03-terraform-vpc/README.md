@@ -30,13 +30,13 @@ Manual `terraform apply` from a laptop means: only one person can deploy, mistak
 - **CI/CD secrets named wrong:** First attempt at GitHub Actions secrets named them `AWS` instead of `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. Pipeline failed with credentials error until secrets were re-entered with exact names matching the workflow file
 - **Terraform state divergence:** Pipeline ran `terraform apply` creating real AWS resources, but used a temporary state file that disappeared after the run. Local Terraform had no record of those resources. This is why remote state storage (S3 backend) is required in real teams — covered in Project 05
 
-## Key concepts this demonstrates
-- Infrastructure as Code with Terraform (init, plan, apply, destroy lifecycle)
-- Resource references and automatic dependency ordering
-- CI/CD pipeline design with GitHub Actions
-- Secrets management (never hardcode credentials in code)
-- `.gitignore` best practices for Terraform projects
-- Terraform state management and why it matters
+## What this actually taught me
+
+The moment `terraform apply` finished and I saw `public-ec2-tf` in the AWS console — created entirely by code I wrote, without touching a single console button — was when Infrastructure as Code clicked for me. It's not just a different way to do the same thing. It's a fundamentally different relationship with infrastructure: the code is the source of truth, not the console. If the console shows something different from the code, the code wins.
+
+The state file problem was the most valuable lesson in this whole project. The CI/CD pipeline created real AWS resources, but used a temporary state file that disappeared when the pipeline's server shut down. My local Terraform had no idea those resources existed. So I couldn't destroy them with Terraform — had to go manually delete them in the console. In a real team, this would be a serious problem: two people running Terraform against the same AWS account with different state files means they'd overwrite each other's work, or try to create resources that already exist. That's why S3 remote state isn't optional in production — it's the thing that makes Terraform safe for teams to use. I hit this problem for real, which means I understand why the solution exists, not just how to implement it.
+
+The GitHub Actions secrets mistake (naming them `AWS` instead of `AWS_ACCESS_KEY_ID`) taught me something important: the pipeline fails silently on credentials errors. It doesn't say "hey your secret name is wrong" — it just says "couldn't load credentials." Diagnosing that required reading the workflow file, checking the secret names, and connecting the dots. That kind of indirect debugging — where the error message points somewhere different from the actual problem — is most of what DevOps troubleshooting actually looks like.
 
 ## What I'd add next
 - Terraform remote state backend using S3 + DynamoDB (Project 05)

@@ -1,3 +1,12 @@
+## What this actually taught me
+
+The most important thing wasn't the script itself — it was learning that monitoring is just "check a number, decide if it's a problem, do something about it." That's all CloudWatch Alarms are. That's all PagerDuty is. Enterprise tools wrap that same logic in a nicer interface, but the concept is identical to this 20-line Bash script. Understanding the concept at this level means I'm not intimidated by the enterprise version — I already know what it's doing under the hood.
+
+I also learned that `df | tail -1 | awk '{print $5}' | sed 's/%//'` isn't magic — it's just chaining small tools together, each one doing one thing. That "pipe output of one command into the next" pattern shows up constantly in DevOps work, whether you're parsing logs, extracting values from JSON, or filtering AWS CLI output## What this actually taught me
+
+The most important thing wasn't the script itself — it was learning that monitoring is just "check a number, decide if it's a problem, do something about it." That's all CloudW$
+
+$ne command into the next" pattern shows up constantly in DevOps work, whether you're parsing logs, extracting values from JSON, or filtering AWS CLI output.# Project 01 - Linu$
 # Project 01 - Linux & Bash Scripting: System Health Check
 
 ## What I built
@@ -16,11 +25,12 @@ Every cloud engineer works in a Linux terminal daily. Before touching AWS or Ter
 - **Git setup from scratch:** Configured Git for the first time, learned the difference between `git add`, `git commit`, and `git push`, and why commit messages matter for teammates reading history later
 - **nano editor quirks:** Learned Ctrl+O → Enter → Ctrl+X the hard way
 
-## Key concepts this demonstrates
-- Unix command line navigation and scripting
-- Parsing command output (`df`, `awk`, `sed`) to extract usable data
-- Conditional logic for threshold-based alerting — same concept behind CloudWatch Alarms
-- Git version control with incremental, documented commits
+## What this actually taught me
+
+The most important thing wasn't the script itself — it was learning that monitoring is just "check a number, decide if it's a problem, do something about it." That's all CloudW$
+
+$ne command into the next" pattern shows up constantly in DevOps work, whether you're parsing logs, extracting values from JSON, or filtering AWS CLI output.# Project 01 - Linu$
+
 
 ## What I'd add next
 - Write output to a timestamped log file
