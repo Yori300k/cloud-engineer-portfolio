@@ -63,3 +63,38 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
 }
+resource "aws_security_group" "ec2" {
+  name        = "ec2-security-group-tf"
+  description = "Allow SSH inbound"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ec2-security-group-tf"
+  }
+}
+
+resource "aws_instance" "web" {
+  ami                         = "ami-0c02fb55956c7d316"
+  instance_type               = "t3.micro"
+  subnet_id                   = aws_subnet.public.id
+  vpc_security_group_ids      = [aws_security_group.ec2.id]
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "public-ec2-tf"
+  }
+}
