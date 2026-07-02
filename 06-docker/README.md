@@ -28,7 +28,12 @@ Kubernetes cluster. One build, runs anywhere.
   nano — got `zsh: command not found: FROM`. Learned the hard way 
   that nano has to be open before you paste file contents into it
 
+ ## What I completed
+- Built Docker image locally and verified running in browser
+- Authenticated Docker to AWS ECR using `aws ecr get-login-password`
+- Tagged and pushed image to private ECR repository
+- Image now lives at `344838028727.dkr.ecr.us-east-1.amazonaws.com/cloud-portfolio-app:latest`
+
 ## What's next
-- Push this image to AWS ECR (Elastic Container Registry)
-- Deploy it to ECS or EKS so it runs in the cloud, not just locally
-- Connect it to the VPC infrastructure built in Projects 02 and 03
+- Deploy this image to EKS (Elastic Kubernetes Service) — Project 07
+- Connect it to the VPC infrastructure from Projects 02 and 03
