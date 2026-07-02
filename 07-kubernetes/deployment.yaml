@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-portfolio-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cloud-portfolio
+  template:
+    metadata:
+      labels:
+        app: cloud-portfolio
+    spec:
+      containers:
+      - name: cloud-portfolio-app
+        image: cloud-portfolio-app:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
