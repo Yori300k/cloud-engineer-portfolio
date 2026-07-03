@@ -96,3 +96,4 @@ This proves the core 3-tier security pattern: web/app tier is reachable from the
 ## Next steps
 
 - Rebuild this entire setup using Terraform (Infrastructure as Code) instead of manual console steps
+![Architecture Diagram](project-02-architecture.png)
