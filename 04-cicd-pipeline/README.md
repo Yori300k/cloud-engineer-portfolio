@@ -1,5 +1,5 @@
 # Project 04 - CI/CD Pipeline with GitHub Actions
-
+(project-04-cicd-pipeline.png)
 ## What I built
 An automated pipeline that triggers every time code changes are pushed 
 to the `03-terraform-vpc/` folder. GitHub spins up a fresh Ubuntu server, 
