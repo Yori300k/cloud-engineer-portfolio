@@ -1,16 +1,7 @@
-## What this actually taught me
+# Project 01 - Linux & Bash Scripting: System Health Check
 
 ## Business problem this solves
 When a disk quietly fills up at 2am, the app crashes, sales stop, and someone is getting dragged out of bed to fix it — and downtime runs about $5,600 a minute (Gartner). Catching it at 80% full costs nothing and nobody loses sleep.
-
-The most important thing wasn't the script itself — it was learning that monitoring is just "check a number, decide if it's a problem, do something about it." That's all CloudWatch Alarms are. That's all PagerDuty is. Enterprise tools wrap that same logic in a nicer interface, but the concept is identical to this 20-line Bash script. Understanding the concept at this level means I'm not intimidated by the enterprise version — I already know what it's doing under the hood.
-
-I also learned that `df | tail -1 | awk '{print $5}' | sed 's/%//'` isn't magic — it's just chaining small tools together, each one doing one thing. That "pipe output of one command into the next" pattern shows up constantly in DevOps work, whether you're parsing logs, extracting values from JSON, or filtering AWS CLI output## What this actually taught me
-
-The most important thing wasn't the script itself — it was learning that monitoring is just "check a number, decide if it's a problem, do something about it." That's all CloudW$
-
-$ne command into the next" pattern shows up constantly in DevOps work, whether you're parsing logs, extracting values from JSON, or filtering AWS CLI output.# Project 01 - Linu$
-# Project 01 - Linux & Bash Scripting: System Health Check
 
 ## What I built
 A Bash script that monitors disk usage, memory, and CPU processes on a Linux/Unix system. Evolved from a basic output script to one with threshold-based alerting logic.
@@ -26,14 +17,12 @@ Every cloud engineer works in a Linux terminal daily. Before touching AWS or Ter
 ## Real problems I ran into
 - **Mac vs Linux differences:** `free -h` doesn't exist on Mac — had to use `vm_stat` instead. Small difference, but it taught me that cloud servers run Linux, not Mac, which is why EC2 instances matter
 - **Git setup from scratch:** Configured Git for the first time, learned the difference between `git add`, `git commit`, and `git push`, and why commit messages matter for teammates reading history later
-- **nano editor quirks:** Learned Ctrl+O → Enter → Ctrl+X the hard way
+- **nano editor quirks:** Learned Ctrl+O then Enter then Ctrl+X the hard way
 
 ## What this actually taught me
+The most important thing wasn't the script itself — it was learning that monitoring is just "check a number, decide if it's a problem, do something about it." That's all CloudWatch Alarms are. That's all PagerDuty is. Enterprise tools wrap that same logic in a nicer interface, but the concept is identical to this 20-line Bash script. Understanding the concept at this level means I'm not intimidated by the enterprise version — I already know what it's doing under the hood.
 
-The most important thing wasn't the script itself — it was learning that monitoring is just "check a number, decide if it's a problem, do something about it." That's all CloudW$
-
-$ne command into the next" pattern shows up constantly in DevOps work, whether you're parsing logs, extracting values from JSON, or filtering AWS CLI output.# Project 01 - Linu$
-
+I also learned that chaining small tools together with pipes — each one doing one thing — isn't magic. That "pipe the output of one command into the next" pattern shows up constantly in DevOps work, whether you're parsing logs, extracting values from JSON, or filtering AWS CLI output.
 
 ## What I'd add next
 - Write output to a timestamped log file
