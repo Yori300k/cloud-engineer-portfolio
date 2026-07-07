@@ -1,5 +1,8 @@
 # Project 07 - Kubernetes: Container Orchestration
 
+## Business problem this solves
+Downtime is money leaving the building by the minute. I killed a running server on purpose and watched Kubernetes rebuild it in under 30 seconds — no human, no 3am page, no lost sales. That is what companies are actually paying for when they run Kubernetes.
+
 ## What I built
 Deployed my containerized application (from Project 06) into a real 
 Kubernetes cluster, running 3 self-healing replicas, and verified it 

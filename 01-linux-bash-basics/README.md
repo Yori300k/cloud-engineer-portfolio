@@ -1,5 +1,8 @@
 ## What this actually taught me
 
+## Business problem this solves
+When a disk quietly fills up at 2am, the app crashes, sales stop, and someone is getting dragged out of bed to fix it — and downtime runs about $5,600 a minute (Gartner). Catching it at 80% full costs nothing and nobody loses sleep.
+
 The most important thing wasn't the script itself — it was learning that monitoring is just "check a number, decide if it's a problem, do something about it." That's all CloudWatch Alarms are. That's all PagerDuty is. Enterprise tools wrap that same logic in a nicer interface, but the concept is identical to this 20-line Bash script. Understanding the concept at this level means I'm not intimidated by the enterprise version — I already know what it's doing under the hood.
 
 I also learned that `df | tail -1 | awk '{print $5}' | sed 's/%//'` isn't magic — it's just chaining small tools together, each one doing one thing. That "pipe output of one command into the next" pattern shows up constantly in DevOps work, whether you're parsing logs, extracting values from JSON, or filtering AWS CLI output## What this actually taught me

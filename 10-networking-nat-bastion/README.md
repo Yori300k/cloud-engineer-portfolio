@@ -1,5 +1,8 @@
 # Project 10 - Networking Depth: NAT Gateway & Bastion Host
 
+## Business problem this solves
+Unpatched servers are how most breaches get in, and a breach averages $4.9M. The NAT lets locked-down private servers pull their security updates automatically without opening a single door inward. And since a NAT bills by the hour, I tore mine down after testing — the same habit that keeps a cloud bill from quietly doubling.
+
 ![Architecture Diagram](project-10-nat-bastion.png)
 
 ## What I built

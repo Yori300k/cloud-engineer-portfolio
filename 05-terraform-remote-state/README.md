@@ -1,5 +1,8 @@
 # Project 05 - Terraform Remote State (S3 Backend)
 
+## Business problem this solves
+Two engineers with out-of-sync state files can silently bulldoze each other's infrastructure — that is real outages and days of rebuild. Shared, locked state costs about a dollar a month and makes the whole failure category disappear. I hit this exact problem for real before I built the fix, so I know what it prevents.
+
 ## What I built
 A Terraform remote backend using S3 for state storage and DynamoDB for 
 state locking — the production-grade solution to the state divergence 

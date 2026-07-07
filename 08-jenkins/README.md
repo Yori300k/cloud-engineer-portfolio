@@ -1,5 +1,8 @@
 # Project 08 - Jenkins: Self-Hosted CI/CD
 
+## Business problem this solves
+Government and regulated-industry contracts — often six and seven figures — are won or lost on compliance, and their code cannot leave the building. A self-hosted pipeline keeps the whole delivery process inside the security boundary, which protects the contracts that pay everyone's salary.
+
 ## What I built
 A self-hosted Jenkins server running in Docker, with a working pipeline 
 that runs the four core stages of CI/CD: Checkout, Build, Test, Deploy.

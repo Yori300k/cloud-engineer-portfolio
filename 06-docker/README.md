@@ -1,5 +1,8 @@
 # Project 06 - Docker: Containerizing an Application
 
+## Business problem this solves
+"Works on my machine" burns days of engineering time chasing bugs that only exist because environments do not match. Containers end the argument — the environment ships with the app, identical everywhere, and a new developer goes from days of setup to hours.
+
 ## What I built
 A Python web application containerized using Docker — built locally, 
 verified running in a container, and ready to deploy to AWS.

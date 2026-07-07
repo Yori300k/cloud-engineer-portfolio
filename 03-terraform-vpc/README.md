@@ -1,5 +1,8 @@
 # Project 03 - Terraform Infrastructure as Code + CI/CD Pipeline
 
+## Business problem this solves
+When your infrastructure lives in one person's head, every rebuild costs days of a senior engineer's time — and if that person quits, the knowledge walks out with them. In Terraform it is one command, ten minutes, identical every time, and anyone on the team can run it. I migrated a hand-built environment to code to prove exactly that.
+
 ## What I built
 The same AWS architecture from Project 02, rebuilt entirely as Terraform code — plus a GitHub Actions CI/CD pipeline that deploys it automatically on every push.
 

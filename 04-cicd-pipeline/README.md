@@ -1,4 +1,7 @@
 # Project 04 - CI/CD Pipeline with GitHub Actions
+
+## Business problem this solves
+Manual deploys eat hours of engineer time and one typo can take the whole site down. With a pipeline, shipping is minutes and hands-free — and the teams that ship this way deploy over 100x more often with far fewer failures (DORA). Faster shipping means features reach customers, and revenue, sooner.
 ![Pipeline Diagram](project-04-cicd-pipeline.png)
 ## What I built
 An automated pipeline that triggers every time code changes are pushed 

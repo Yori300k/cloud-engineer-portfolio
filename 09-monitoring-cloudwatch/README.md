@@ -1,5 +1,8 @@
 # Project 09 - Monitoring: CloudWatch, Alarms & SNS
 
+## Business problem this solves
+Every minute between "something broke" and "someone noticed" is money burning at that ~$5,600/minute rate. Good alerting shrinks that to seconds. And mine initially watched the wrong metric while looking perfectly healthy — which taught me the expensive lesson early: monitoring you have not tested is not protection, it is decoration.
+
 ## What I built
 A complete production monitoring loop on AWS: CloudWatch watching an 
 EC2 instance's CPU, an alarm that trips above 70%, and SNS delivering 

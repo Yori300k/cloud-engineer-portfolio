@@ -1,5 +1,8 @@
 # Project 02 - AWS 3-Tier Architecture (Manual Console Build)
 
+## Business problem this solves
+A data breach is not an IT headache, it is a company-ending event — the average one costs $4.9M (IBM), and most small companies fold within six months of one. Locking the database in a private subnet means it is simply unreachable from the internet. Cheapest insurance a business will ever buy.
+
 ## What I built
 A complete, tested AWS network built entirely by hand in the AWS console — no automation tools, just understanding each piece before writing code for it.
 
