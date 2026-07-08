@@ -1,0 +1,9 @@
+# Python virtual environment - rebuilt from requirements.txt, never committed
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local env files
+.env
