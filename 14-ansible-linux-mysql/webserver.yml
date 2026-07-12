@@ -1,0 +1,22 @@
+---
+- name: Configure web servers
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: true
+
+    - name: Deploy custom index page
+      copy:
+        content: "<h1>Managed by Ansible — {{ inventory_hostname }}</h1>\n"
+        dest: /var/www/html/index.html
+
+    - name: Ensure nginx is running and enabled
+      service:
+        name: nginx
+        state: started
+        enabled: true
