@@ -1,78 +1,83 @@
-# Project 15 — Terraform Modules (Phase 1) · EKS + Observability (Phase 2, in progress)
+# Project 15 — Terraform Modules + EKS with Observability
 
-**The problem:** A platform team keeps rebuilding the same infrastructure patterns — a VPC here, a web fleet there — by copying Terraform between projects. Every copy drifts. One environment ends up with an encrypted bucket and another doesn't; one has security groups chained correctly and another has 0.0.0.0/0 because someone was in a hurry. Standards live in people's heads and get re-litigated on every build. The team needs one blessed, versioned implementation of each pattern that every environment consumes — and consumers who can't accidentally skip the secure parts.
+**The problem:** Two problems, one project. First: a platform team keeps copy-pasting Terraform between environments, and every copy drifts — one has encrypted storage, another doesn't; one chains its security groups, another has 0.0.0.0/0 because someone was in a hurry. Second: the company runs containers on individual servers, deploying and restarting by hand, and when a container dies at 2am a human gets paged. They need reusable infrastructure patterns and a platform that schedules, heals, and reports on itself.
 
 **Requirements:**
-- Reusable modules with a clear input/output contract, not copy-pasted resource blocks
-- Secure defaults (security-group chaining, least privilege) inherited automatically by every consumer
-- A second environment must be standable from configuration alone — no duplicated resource code
-- Consumers interact with validated variables, never with raw internals
-- Each module does one job; composition happens in the root configuration
+- Reusable modules with a clear input/output contract — no copy-pasted resource blocks
+- Secure defaults inherited automatically by every consumer
+- A managed Kubernetes cluster, provisioned entirely in Terraform, workers in private subnets
+- Workloads that self-heal without human intervention
+- Full observability: metrics from every node and pod, dashboards, alerting
+- Everything destroyable and rebuildable from code — this stack bills by the hour
 
-![Architecture](15-terraform-modules.png)
+![Modules](15-terraform-modules.png)
 
-## What this demonstrates
+![EKS](15-eks-observability.png)
 
-Two authored modules — `networking` (VPC, IGW, computed subnets, routing) and `web-fleet` (launch template, Auto Scaling Group, ALB, target group, chained security groups) — plus a sixteen-line root configuration that composes them into a complete multi-AZ environment.
+## Phase 1 — Authored Terraform modules
 
-The root config is the whole argument. Two module calls and one wire:
+Two modules: `networking` (VPC, IGW, computed subnets, routing) and `web-fleet` (launch template, Auto Scaling Group, ALB, target group, chained security groups). A sixteen-line root configuration composes them into a complete multi-AZ environment.
 
-```hcl
-module "networking" {
-  source      = "./modules/networking"
-  name_prefix = "p15"
-}
+The whole argument is in the root config: two module calls and one wire — `vpc_id = module.networking.vpc_id`. Outputs feeding inputs. That's the contract.
 
-module "web_fleet" {
-  source      = "./modules/web-fleet"
-  name_prefix = "p15"
-  vpc_id      = module.networking.vpc_id
-  subnet_ids  = module.networking.public_subnet_ids
-}
-```
+**The proof of reuse:** standing up a completely separate staging environment — different CIDR, smaller fleet — took twelve additional lines of configuration and zero duplicated resource code.
 
-That `vpc_id = module.networking.vpc_id` line is outputs feeding inputs — the contract between modules, and the entire philosophy in one glance. Deployed 14 resources, served traffic across two AZs, and tore down clean.
+**Design decisions:**
+- **Minimal required inputs.** Consumers supply only what they alone can know (name, VPC, subnets). Instance type and fleet sizing ship with working defaults. Every extra required input is another way to get it wrong.
+- **Computed, not asked-for.** The networking module derives subnet CIDRs from the VPC CIDR with `cidrsubnet()` rather than making consumers do arithmetic they can get wrong.
+- **Secure defaults baked in.** The security-group chain — instances accept traffic only from the load balancer's security group — lives inside the module. Consumers inherit it and cannot skip it. That's the difference between a standard that's written down and one that's enforced.
+- **One module, one job.** `web-fleet` takes a VPC ID; it does not create networking. Composition belongs to the root config.
+- **Outputs are the only public surface.** Internals stay internal — least privilege, applied to code.
+- **When NOT to modularize:** one-off infrastructure. The trigger is repetition; premature modularization is its own smell.
 
-**The proof of reuse:** standing up a completely separate staging environment — different CIDR (10.50.0.0/16), smaller fleet (min 1 / max 2) — took twelve additional lines of configuration and zero duplicated resource code. Plan confirmed 14 more resources from the same master copy.
+## Phase 2 — EKS + Prometheus/Grafana
+
+54 Terraform resources: VPC across two AZs, private subnets with NAT egress, a managed EKS control plane, a managed node group, and every IAM role and security group in between. Consumed the community VPC and EKS modules — nobody hand-writes 54 EKS resources, and consuming a versioned module is the other half of the skill Phase 1 taught from the authoring side.
+
+**What EKS actually manages:** the control plane — API server, etcd, scheduler, controller manager — across multiple AZs, patched and backed up, for about $0.10/hour. What I still own: the nodes, the workloads, the networking, and the security posture. That distinction is what separates operating EKS from running minikube.
+
+**Self-healing, verified:** deployed three replicas, watched the scheduler place them across both nodes, then deleted a running pod. A replacement was created within seconds — the controller manager comparing desired state (3) to actual (2) and closing the gap. No human, no page.
+
+**Observability:** installed `kube-prometheus-stack` via Helm — Prometheus (scraping every node and pod), Grafana (29 dashboards), Alertmanager, node-exporter as a DaemonSet, and kube-state-metrics. One command, roughly fifty Kubernetes objects, versioned as a single release. Live CPU and memory graphs per node and per pod, inside minutes.
 
 ## Decisions and trade-offs
 
-**Minimal required inputs, sane defaults for the rest.** `name_prefix`, `vpc_id`, and `subnet_ids` are required, because only the consumer can know them. `instance_type`, `min_size`, and `max_size` ship with defaults, so the module works out of the box. Every additional required input is another way for a consumer to get it wrong — and every additional *optional* knob is surface area to maintain. Start minimal; add configurability when a real consumer actually needs it, not for hypothetical ones.
+**EKS, not ECS/Fargate.** Honest version: most teams pick Kubernetes for reasons that are really about resumes rather than requirements. EKS earns its cost when you need the ecosystem (Helm, operators, Prometheus) or portability across clouds. ECS with Fargate is simpler and cheaper if you just need to run containers on AWS — no control-plane fee, no cluster to operate. EKS costs ~$100/month before a single pod runs. The right question is what problem is being solved, not which tool looks better on a resume.
 
-**Computed CIDRs instead of asked-for CIDRs.** The networking module derives subnet ranges from the VPC CIDR with `cidrsubnet()` rather than making the consumer supply them. Fewer inputs, fewer overlapping-subnet mistakes. The module absorbs the arithmetic so nobody else has to.
+**Managed node groups, not Fargate profiles.** Fargate removes the node layer entirely — no patching, no capacity planning, pay per pod. The cost is control: no DaemonSets, no privileged pods, no local storage — which rules out the node-exporter and Prometheus stack this project needed. EC2 node groups for control and steady load; Fargate for spiky, bursty workloads and small teams.
 
-**Secure defaults baked in.** The security-group chain — web instances accept traffic *only* from the load balancer's security group, never from the internet — lives inside the module. A consumer inherits it automatically and cannot skip it. That's the difference between a standard that's written down and a standard that's enforced.
+**Terraform, not eksctl.** eksctl spins up a cluster in one command. Terraform makes the cluster part of the same reviewed, versioned, plan-before-apply workflow as everything else — and composes with the modules from Phase 1.
 
-**One module, one job.** `web-fleet` takes a `vpc_id` and `subnet_ids`; it does not create networking. Separation of concerns means either module can be swapped, tested, or reused independently, and composition is the root config's job — not a module's.
+**Helm charts, not raw YAML manifests.** Same trade-off as Terraform modules, one layer up the stack: consume a versioned, blessed package with your own values, rather than authoring fifty manifests and maintaining them. Raw YAML wins when you need total control or the chart hides something you need to reason about.
 
-**Outputs are the only public surface.** Consumers see `vpc_id`, `public_subnet_ids`, `alb_dns_name`, `asg_name`. Internals stay internal. This is the encapsulation argument, and it's least privilege applied to code: the smaller the surface a person can touch, the smaller the blast radius of any change.
-
-**Scope calls — what the module deliberately does NOT do.** No scaling policies, no CloudWatch alarms, no monitoring. The module builds a fleet behind a load balancer; alerting policy belongs to the consumer, who knows their own thresholds. Knowing what to leave *out* of a module is half the judgment.
-
-**Modules, not root-level resources — but not always.** The trigger is repetition: the moment I'm about to copy-paste Terraform, it belongs in a module. One master copy keeps every environment congruent, and versioning lets the master evolve without silently breaking consumers. The counter-case is real though — one-off infrastructure that's built once and never repeated gains nothing from module ceremony. Premature modularization is its own smell.
+**Single NAT gateway, not one per AZ.** Production runs a NAT per availability zone so a zone failure doesn't strand the other zone's nodes. This runs one, saving ~$32/month. A deliberate lab trade-off, and a line in the production-scale section.
 
 ## What broke (and what it taught)
 
-**"Module not installed."** Adding the staging module calls and running `plan` failed immediately: Terraform registers module calls at `init` time, so new calls mean the dependency graph changed and `terraform init` has to run again. Same family as the provider lock-file error from the serverless build. The rule generalizes: **init installs dependencies; plan only reads them.** Change the graph — add a module, add a provider, change a source — and init runs again. Removing module calls triggers it too, in the other direction.
+**1. "No data" on every utilization dashboard.** Grafana's CPU and memory utilization panels were blank. Monitoring wasn't broken — the pods had no resource requests set. Utilization is a ratio, and there was no denominator. Setting requests and limits (`kubectl set resources`) brought every panel to life.
+
+The real lesson is bigger than the fix: pods without resource requests are invisible to the scheduler *and* to capacity planning. The scheduler places them blind, they can starve their neighbors, and nobody can answer "are we over-provisioned?" That's precisely how cloud bills balloon — and the follow-on finding proved it: once requests were set, memory utilization read 4.8%, meaning the pods were reserving roughly twenty times what they used. Reserved-but-unused capacity, multiplied across thousands of pods, is what FinOps teams exist to fix.
+
+**2. Kubernetes created AWS infrastructure behind Terraform's back.** Exposing a Service as `type=LoadBalancer` caused Kubernetes to provision a real AWS load balancer — one that Terraform never created and doesn't have in state. On teardown, Terraform tries to delete the VPC and chokes on a load balancer it doesn't know about.
+
+The rule: delete cluster-created resources with cluster tools first (`helm uninstall`, `kubectl delete svc`), *then* `terraform destroy`. Order matters. This is a real production trap and a good answer to "what surprised you about EKS."
+
+**3. "Module not installed."** Adding module calls and running `plan` failed until `terraform init` ran again. Init installs dependencies; plan only reads them. Change the graph — add a module, add a provider — and init runs again. Same family as the provider lock-file error from the serverless build.
 
 ## What I'd change at production scale
 
-Version the modules with git tags and reference them by version (`source = "git::...?ref=v1.2.0"`) instead of a local path, so consumers upgrade deliberately rather than being broken silently by a change to the master copy. Publish each module with a README and a working example directory. Add input validation blocks so bad values fail at plan time with a readable message rather than at apply time with an AWS API error. Split state per environment (dev/stage/prod) rather than one state holding everything, and enforce conventions with policy-as-code (Sentinel/OPA) and required tags — the guardrails that matter once ten engineers are applying to the same infrastructure instead of one.
+Version the modules with git tags and reference them by version rather than local path, so consumers upgrade deliberately instead of being broken silently. NAT gateway per AZ. Private-only cluster endpoint with access through a bastion or VPN rather than a public endpoint. IRSA (IAM Roles for Service Accounts) so pods assume scoped IAM roles instead of inheriting node permissions — the OIDC provider is already created by the module, so this is the natural next step. Resource requests and limits enforced by admission policy, not left to whoever wrote the manifest. Prometheus with persistent storage and remote write, rather than in-cluster storage that dies with the pod. Alertmanager wired to a real paging destination.
 
 ## Security · Monitoring · Cost
 
-**Security:** the SG chain is inherited, not optional — consumers cannot deploy this fleet with instances exposed directly to the internet. **Monitoring:** deliberately left to the consumer; the module exposes `asg_name` so alarms can be attached externally. **Cost:** the environment exists only during work sessions and is destroyed in code afterward; fleet sizing is an input, so a staging environment runs min 1 while production runs min 2 — same module, right-sized per environment.
+**Security:** worker nodes in private subnets with NAT egress — they reach out, nothing reaches in. Security groups and IAM roles generated by the module rather than hand-rolled. The gap I'd close first in production is IRSA, so pods don't borrow node-level permissions. **Monitoring:** Prometheus scraping node-exporter and kube-state-metrics, Grafana dashboards for cluster, node, and pod resources, Alertmanager present and ready to route. **Cost:** EKS bills by the hour — control plane ~$0.10/hr plus nodes — so this environment exists only during work sessions and is destroyed in code afterward. Total cost of the build session: about a dollar. The deliverable is the repo, never a running bill.
 
 ## PSIL
 
-**Problem:** Copy-pasted infrastructure code drifts. Every duplicate is a future inconsistency, and every hand-edited resource block is a chance to break something in production.
+**Problem:** Copy-pasted infrastructure drifts, and hand-operated container hosts require humans to notice failures and restart things. Neither scales past a small team.
 
-**Solution:** Authored two Terraform modules with a clear input/output contract, secure defaults inherited by every consumer, and a thin root configuration that composes them — a master copy per pattern instead of copies per project.
+**Solution:** Authored reusable Terraform modules with secure defaults and a clear contract; provisioned a managed EKS cluster entirely in code with workers in private subnets; deployed workloads that self-heal, and a Prometheus/Grafana stack that reports on every node and pod.
 
-**Impact:** A complete second environment — separate VPC, separate fleet, different sizing — stands up from twelve lines of configuration with zero duplicated resource code. Standards are enforced by the module rather than remembered by the engineer, and the blast radius of a change shrinks from forty lines of resources to a handful of validated inputs.
+**Impact:** A second full environment now stands up from twelve lines of config with zero duplicated code. A deleted pod is replaced in seconds with no human involved. Cluster and workload metrics are visible in minutes, and the first thing they revealed was ~20x over-provisioning on memory — the exact category of waste that inflates cloud bills.
 
-**Learning:** The trigger for a module is repetition, and the value is congruence — one master copy, versioned, so it can improve without breaking its consumers. But the judgment is in restraint: minimal inputs, one job per module, and no module at all for infrastructure that's built once.
-
----
-
-**Phase 2 (in progress):** EKS cluster with a modularized deployment, Prometheus and Grafana for observability, and IRSA/OIDC so pods assume IAM roles instead of holding credentials.
+**Learning:** Modules and Helm charts are the same instinct at different layers — one master copy, versioned, so improvements don't break consumers. Managed Kubernetes hands you a control plane, not a free pass: the nodes, the networking, and the security posture are still yours. And a cluster will happily create cloud resources your IaC doesn't know about — which means teardown order is part of the design, not an afterthought.
