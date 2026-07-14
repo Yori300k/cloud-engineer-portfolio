@@ -1,8 +1,16 @@
 # Cloud Engineering Portfolio
+## 🔹 Flagship Systems — start here
+
+| System | What it proves |
+|---|---|
+| **[EKS + Observability](./15-terraform-modules-eks)** | Managed Kubernetes in Terraform (54 resources), Prometheus + Grafana, self-healing verified live |
+| **[AI Gateway — Bedrock](./16-bedrock-ai-security)** | Model access governed by IAM, not code — allow-listing proven by attack in both directions |
+| **[Serverless API — live now](./13-serverless-url-shortener)** | Lambda + API Gateway + DynamoDB in production at $0.00 idle cost |
+
 
 An end-to-end AWS portfolio built the way real infrastructure evolves: from manual builds, to Infrastructure as Code, to automated pipelines, to containers and orchestration, to serverless — with security, monitoring, and cost discipline threaded through every stage.
 
-Every build here follows the same rules: solve a business problem, deploy it, **break it on purpose**, diagnose the failure from logs, fix it in code, and document the decisions — including the alternatives I didn't choose and why.
+Every build here follows the same rules: solve a business problem(which I have encountered in production), deploy it, **break it on purpose**, diagnose the failure from logs, fix it in code, and document the decisions — including the alternatives I didn't choose and why.
 
 **Live demo:** a serverless URL-shortening API (Lambda + API Gateway + DynamoDB, 100% Terraform) is running right now at $0.00 idle cost. Details in [13-serverless-url-shortener](./13-serverless-url-shortener).
 
