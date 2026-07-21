@@ -81,3 +81,5 @@ Version the modules with git tags and reference them by version rather than loca
 **Impact:** A second full environment now stands up from twelve lines of config with zero duplicated code. A deleted pod is replaced in seconds with no human involved. Cluster and workload metrics are visible in minutes, and the first thing they revealed was ~20x over-provisioning on memory — the exact category of waste that inflates cloud bills.
 
 **Learning:** Modules and Helm charts are the same instinct at different layers — one master copy, versioned, so improvements don't break consumers. Managed Kubernetes hands you a control plane, not a free pass: the nodes, the networking, and the security posture are still yours. And a cluster will happily create cloud resources your IaC doesn't know about — which means teardown order is part of the design, not an afterthought.
+
+I'd modularize the most-duplicated piece first, prove it on the lowest-stakes environment, then migrate the rest
