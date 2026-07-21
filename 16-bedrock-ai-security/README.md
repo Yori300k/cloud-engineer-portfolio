@@ -52,3 +52,5 @@ A VPC endpoint for Bedrock so invocation traffic never touches the public intern
 **Impact:** Model allow-listing proven by test in both directions — a forbidden model denied by name at the policy layer, the approved model passing the permission check. Idle cost $0; the governance layer adds no infrastructure bill at all.
 
 **Learning:** AI workloads are governed by the boring primitives — IAM, quotas, logs — which means cloud engineers already own most of the AI security problem. And two scars worth keeping: inference capacity is a per-account quota that can be zero on day one, and cross-region inference profiles will route requests to regions your policy never mentioned.
+
+The code doesn't decide. It asks, and AWS decides — and only IAM can change the answer."
